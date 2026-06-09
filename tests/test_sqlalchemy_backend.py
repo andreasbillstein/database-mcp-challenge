@@ -1,0 +1,129 @@
+import unittest
+from collections.abc import Iterator
+from pathlib import Path
+
+import pytest
+import sqlalchemy as sa
+
+from db_mcp_server.backends.sqlalchemy import SQLAlchemyBackend, SQLiteBackendConfig
+from db_mcp_server.bootstrap import bootstrap_db_backend
+from db_mcp_server.config import Config
+from db_mcp_server.db import FK, PK, BackendError, ColumnInfo, Index
+
+
+@pytest.fixture
+def database(tmp_path: Path) -> Iterator[str]:
+    url = f"sqlite:///{tmp_path}/test.db"
+    setup_engine = sa.create_engine(url)
+    try:
+        metadata = sa.MetaData()
+
+        sa.Table(
+            "users",
+            metadata,
+            sa.Column("id", sa.Integer, primary_key=True),
+            sa.Column("email", sa.String(255), nullable=False, unique=True),
+            sa.Column("name", sa.String(100), nullable=False),
+            sa.Index("ix_users_name", "name"),
+        )
+
+        sa.Table(
+            "orders",
+            metadata,
+            sa.Column("id", sa.Integer, primary_key=True),
+            sa.Column(
+                "user_id",
+                sa.Integer,
+                sa.ForeignKey("users.id", name="fk_orders_user_id"),
+                nullable=False,
+            ),
+            sa.Column("amount_cents", sa.Integer, nullable=False),
+            sa.Column("status", sa.String(20), nullable=False),
+            sa.Index("ix_orders_user_id", "user_id"),
+        )
+
+        metadata.create_all(setup_engine)
+        yield url
+    finally:
+        setup_engine.dispose()
+
+
+USERS_ROWS = [
+    {"id": 1, "email": "alice@example.com", "name": "Alice"},
+    {"id": 2, "email": "bob@example.com", "name": "Bob"},
+]
+
+ORDERS_ROWS = [
+    {"id": 1, "user_id": 1, "amount_cents": 500, "status": "paid"},
+    {"id": 2, "user_id": 1, "amount_cents": 1500, "status": "pending"},
+    {"id": 3, "user_id": 2, "amount_cents": 2000, "status": "paid"},
+]
+
+
+@pytest.fixture
+def sample_rows(database: str) -> dict[str, list[dict]]:
+    setup_engine = sa.create_engine(database)
+    md = sa.MetaData()
+    md.reflect(bind=setup_engine)
+    with setup_engine.begin() as conn:
+        conn.execute(md.tables["users"].insert(), USERS_ROWS)
+        conn.execute(md.tables["orders"].insert(), ORDERS_ROWS)
+    setup_engine.dispose()
+    return {"users": USERS_ROWS, "orders": ORDERS_ROWS}
+
+
+def test_sqlalchemy_backend_execute_query(database: str, sample_rows: dict[str, list[dict]]):
+    backend = SQLAlchemyBackend(engine=sa.create_engine(database))
+    unittest.TestCase().assertCountEqual(
+        backend.execute_query("SELECT * FROM users ORDER BY id"), sample_rows["users"]
+    )
+
+
+def test_sqlalchemy_backend_list_tables(database: str):
+    backend = SQLAlchemyBackend(engine=sa.create_engine(database))
+    unittest.TestCase().assertCountEqual(backend.list_tables(), ["users", "orders"])
+
+
+def test_sqlalchemy_backend_metadata(database: str):
+    backend = SQLAlchemyBackend(engine=sa.create_engine(database))
+    metadata = backend.get_table_metadata(tables=["orders"])
+
+    assert len(metadata) == 1
+    orders = metadata[0]
+    assert orders.name == "orders"
+
+    unittest.TestCase().assertCountEqual(
+        orders.columns,
+        [
+            ColumnInfo(name="id", type="INTEGER", nullable=False),
+            ColumnInfo(name="user_id", type="INTEGER", nullable=False),
+            ColumnInfo(name="amount_cents", type="INTEGER", nullable=False),
+            ColumnInfo(name="status", type="VARCHAR(20)", nullable=False),
+        ],
+    )
+
+    assert orders.primary_key == PK(name=None, constrained_columns=["id"])
+
+    assert orders.foreign_keys == [
+        FK(
+            name="fk_orders_user_id",
+            constrained_columns=["user_id"],
+            referred_table="users",
+            referred_columns=["id"],
+        ),
+    ]
+
+    assert orders.indexes == [
+        Index(name="ix_orders_user_id", columns=["user_id"]),
+    ]
+
+
+def test_bootstrapped_sqlalchemy_backend_sqlite_is_readonly(database: str):
+    config = Config(
+        backend=SQLiteBackendConfig(file=Path(database.removeprefix("sqlite:///"))),
+        name="test",
+        description="test",
+    )
+    backend = bootstrap_db_backend(config)
+    with pytest.raises(BackendError):
+        list(backend.execute_query("INSERT INTO users (email, name) VALUES ('x', 'y')"))

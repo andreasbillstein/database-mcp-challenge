@@ -1,0 +1,9 @@
+*
+!src
+!src/**
+!pyproject.toml
+!uv.lock
+
+# Exclude noise inside the allowed paths.
+src/**/__pycache__
+src/**/*.pyc

@@ -1,0 +1,49 @@
+[project]
+name = "mcp-coding-challenge"
+version = "0.1.0"
+description = "MCP Servcer for interacting with databases"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "mcp>=1.27.2",
+    "psycopg2-binary>=2.9.10",
+    "pydantic-settings>=2.6.0",
+    "sqlalchemy>=2.0.50",
+]
+
+[dependency-groups]
+dev = [
+    "mcp[cli]>=1.27.2",
+    "mypy>=2.1.0",
+    "pre-commit>=4.0.0",
+    "pytest>=9.0.3",
+    "ruff>=0.15.16",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",  # pycodestyle
+    "F",       # pyflakes
+    "B",       # flake8-bugbear
+    "I",       # isort
+    "UP",      # pyupgrade
+    "PL",      # pylint
+    "RUF",     # ruff-specific
+]
+
+[tool.mypy]
+python_version = "3.14"
+strict = false
+warn_unused_configs = true
+warn_unreachable = true
+files = ["src", "tests"]
+mypy_path = ["src"]
+explicit_package_bases = true
+
+[tool.pytest]
+pythonpath=["src"]
