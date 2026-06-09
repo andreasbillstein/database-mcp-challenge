@@ -26,3 +26,4 @@ class Config(BaseSettings):
         max_length=64,
         description="Database identifier. Used as the MCP mount base path.",
     )
+    description: str = Field(description="Describes the contents of the database.")

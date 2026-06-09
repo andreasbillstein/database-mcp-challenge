@@ -45,7 +45,7 @@ def mcp_server_success_responses() -> FastMCP:
         def close(self) -> None: ...
 
     backend = DummyBackendSuccess()
-    return server.build(backend, "")
+    return server.build(backend, "", "", "")
 
 
 @pytest.fixture
@@ -63,6 +63,9 @@ async def test_mcp_server_tool_list(client_session_success_responses: ClientSess
     tool_list = (await client_session_success_responses.list_tools()).tools
     unittest.TestCase().assertCountEqual(
         [tool.name for tool in tool_list], ["list_tables", "get_table_metadata", "execute_query"]
+    )
+    assert all(
+        [tool.description is not None and tool.description.strip() != "" for tool in tool_list]
     )
 
 

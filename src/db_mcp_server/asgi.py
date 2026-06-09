@@ -10,7 +10,9 @@ from db_mcp_server.config import Config
 
 config = Config()  # type: ignore
 backend = bootstrap_db_backend(config)
-mcp = server.build(backend=backend, name=config.name)
+mcp = server.build(
+    backend, name=config.name, dialect=config.backend.kind, content_description=config.description
+)
 
 
 @asynccontextmanager
