@@ -6,6 +6,7 @@ import pytest
 import sqlalchemy as sa
 
 from db_mcp_server.backends.sqlalchemy import SQLAlchemyBackend
+from db_mcp_server.db import FK, PK, ColumnInfo, Index
 
 
 @pytest.fixture
@@ -79,3 +80,37 @@ def test_sqlalchemy_backend_execute_query(database: str, sample_rows: dict[str, 
 def test_sqlalchemy_backend_list_tables(database: str):
     backend = SQLAlchemyBackend(engine=sa.create_engine(database))
     unittest.TestCase().assertCountEqual(backend.list_tables(), ["users", "orders"])
+
+
+def test_sqlalchemy_backend_metadata(database: str):
+    backend = SQLAlchemyBackend(engine=sa.create_engine(database))
+    metadata = backend.get_table_metadata(tables=["orders"])
+
+    assert len(metadata) == 1
+    orders = metadata[0]
+    assert orders.name == "orders"
+
+    unittest.TestCase().assertCountEqual(
+        orders.columns,
+        [
+            ColumnInfo(name="id", type="INTEGER", nullable=False),
+            ColumnInfo(name="user_id", type="INTEGER", nullable=False),
+            ColumnInfo(name="amount_cents", type="INTEGER", nullable=False),
+            ColumnInfo(name="status", type="VARCHAR(20)", nullable=False),
+        ],
+    )
+
+    assert orders.primary_key == PK(name=None, constrained_columns=["id"])
+
+    assert orders.foreign_keys == [
+        FK(
+            name="fk_orders_user_id",
+            constrained_columns=["user_id"],
+            referred_table="users",
+            referred_columns=["id"],
+        ),
+    ]
+
+    assert orders.indexes == [
+        Index(name="ix_orders_user_id", columns=["user_id"]),
+    ]

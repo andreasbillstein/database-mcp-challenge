@@ -20,3 +20,9 @@ class Config(BaseSettings):
     )
 
     backend: BackendConfig
+    name: str = Field(
+        pattern=r"^[a-z][a-z0-9_-]*$",
+        min_length=1,
+        max_length=64,
+        description="Database identifier. Used as the MCP mount base path.",
+    )
