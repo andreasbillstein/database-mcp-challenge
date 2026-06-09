@@ -44,6 +44,7 @@ def build(
             "Write-operations are rejected by the read-only database user."
         ),
         lifespan=lifespan,
+        stateless_http=True,
     )
 
     @mcp.tool()
