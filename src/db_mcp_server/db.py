@@ -15,5 +15,3 @@ class AbstractDatabaseBackend(abc.ABC):
 
     @abc.abstractmethod
     def close(self) -> None: ...
-
-

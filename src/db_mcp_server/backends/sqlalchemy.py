@@ -1,12 +1,11 @@
 import pathlib
 from collections.abc import Iterator
-from functools import wraps
 from typing import Any, Literal
 
 import pydantic
 import sqlalchemy as sa
-from db_mcp_server.db import AbstractDatabaseBackend
 
+from db_mcp_server.db import AbstractDatabaseBackend
 
 
 class SQLAlchemyBackend(AbstractDatabaseBackend):
@@ -54,7 +53,6 @@ class SQLAlchemyBackend(AbstractDatabaseBackend):
 
     def list_tables(self) -> list[str]:
         return sa.inspect(self._engine).get_table_names()
-
 
     def execute_query(self, query: str) -> Iterator[dict[str, Any]]:
         with self._engine.begin() as conn:

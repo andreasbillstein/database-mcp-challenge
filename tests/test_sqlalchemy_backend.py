@@ -79,4 +79,3 @@ def test_sqlalchemy_backend_execute_query(database: str, sample_rows: dict[str, 
 def test_sqlalchemy_backend_list_tables(database: str):
     backend = SQLAlchemyBackend(engine=sa.create_engine(database))
     unittest.TestCase().assertCountEqual(backend.list_tables(), ["users", "orders"])
-
