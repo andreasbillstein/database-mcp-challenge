@@ -5,8 +5,10 @@ from pathlib import Path
 import pytest
 import sqlalchemy as sa
 
-from db_mcp_server.backends.sqlalchemy import SQLAlchemyBackend
-from db_mcp_server.db import FK, PK, ColumnInfo, Index
+from db_mcp_server.backends.sqlalchemy import SQLAlchemyBackend, SQLiteBackendConfig
+from db_mcp_server.bootstrap import bootstrap_db_backend
+from db_mcp_server.config import Config
+from db_mcp_server.db import FK, PK, BackendError, ColumnInfo, Index
 
 
 @pytest.fixture
@@ -114,3 +116,14 @@ def test_sqlalchemy_backend_metadata(database: str):
     assert orders.indexes == [
         Index(name="ix_orders_user_id", columns=["user_id"]),
     ]
+
+
+def test_bootstrapped_sqlalchemy_backend_sqlite_is_readonly(database: str):
+    config = Config(
+        backend=SQLiteBackendConfig(file=Path(database.removeprefix("sqlite:///"))),
+        name="test",
+        description="test",
+    )
+    backend = bootstrap_db_backend(config)
+    with pytest.raises(BackendError):
+        list(backend.execute_query("INSERT INTO users (email, name) VALUES ('x', 'y')"))

@@ -13,7 +13,11 @@ def bootstrap_db_backend(config: Config) -> AbstractDatabaseBackend:
     backend = config.backend
     if isinstance(backend, SQLiteBackendConfig):
         engine = sa.create_engine(
-            sa.URL.create(drivername="sqlite", database=str(backend.file.resolve()))
+            sa.URL.create(
+                drivername="sqlite",
+                database=f"file:{backend.file.resolve()}",
+                query={"mode": "ro", "uri": "true"},
+            )
         )
     elif isinstance(backend, PostgresBackendConfig):
         engine = sa.create_engine(
@@ -25,7 +29,11 @@ def bootstrap_db_backend(config: Config) -> AbstractDatabaseBackend:
                 password=backend.password.get_secret_value(),
                 database=backend.db,
             ),
-            connect_args={"options": f"-c search_path={backend.db_schema}"},
+            connect_args={
+                "options": (
+                    f"-c search_path={backend.db_schema} -c default_transaction_read_only=on"
+                )
+            },
         )
     else:
         raise AssertionError(f"Unknown backend {type(backend)}")
