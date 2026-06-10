@@ -47,7 +47,7 @@ Load the Titanic data with pgloader:
 brew install pgloader
 pgloader \
   sqlite://$(pwd)/data/titanic.db \
-  postgresql://titanic:titanic@localhost:5432/titanic
+  postgresql://postgres:postgres@localhost:5432/titanic
 ```
 
 Start the MCP
