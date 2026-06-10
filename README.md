@@ -28,11 +28,19 @@ Easiest way to test is via the MCP Inspector: `npx @modelcontextprotocol/inspect
 
 ## Tests
 
+Unit tests use SQLite + a dummy MCP backend. Fast and self-contained:
+
 ```
 uv run pytest
 ```
 
-Unit tests use SQLite + a dummy MCP backend. 
+### Integration tests
+
+Integration tests run end-to-end against a real Postgres (in an isolated schema) and are excluded by default. Bring one up via Docker first (see below), then:
+
+```
+uv run pytest -m integration
+```
 
 ## Docker
 
