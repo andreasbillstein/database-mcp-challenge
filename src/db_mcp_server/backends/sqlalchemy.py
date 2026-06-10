@@ -97,14 +97,14 @@ class SQLAlchemyBackend(AbstractDatabaseBackend):
 
 class SQLiteBackendConfig(pydantic.BaseModel):
     kind: Literal["sqlite"] = "sqlite"
-    file: pathlib.Path
+    file: pathlib.Path = pathlib.Path(__file__).resolve().parents[3] / "data" / "titanic.db"
 
 
 class PostgresBackendConfig(pydantic.BaseModel):
     kind: Literal["postgres"] = "postgres"
-    host: str
-    port: int
-    db: str
-    db_schema: str
-    username: str
-    password: pydantic.SecretStr
+    host: str = "localhost"
+    port: int = 5432
+    db: str = "default"
+    db_schema: str = "public"
+    username: str = "postgres"
+    password: pydantic.SecretStr = pydantic.SecretStr("postgres")
