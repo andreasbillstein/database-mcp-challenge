@@ -150,6 +150,9 @@ activemq-data/
 # Local data files
 *.db
 
+# IDE
+.vscode/
+
 # Environments
 .env
 .envrc
