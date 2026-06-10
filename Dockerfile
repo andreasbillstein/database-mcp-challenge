@@ -20,4 +20,4 @@ ENV PYTHONPATH=/app/src
 
 EXPOSE 8000
 
-CMD ["uvicorn", "db_mcp_server.asgi:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "db_mcp_server.asgi:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]

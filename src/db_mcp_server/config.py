@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -9,6 +9,8 @@ BackendConfig = Annotated[
     SQLiteBackendConfig | PostgresBackendConfig,
     Field(discriminator="kind"),
 ]
+
+LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
 
 class Config(BaseSettings):
@@ -27,3 +29,7 @@ class Config(BaseSettings):
         description="Database identifier. Used as the MCP mount base path.",
     )
     description: str = Field(description="Describes the contents of the database.")
+    log_level: LogLevel = Field(
+        default="INFO",
+        description="Root logger level. One of DEBUG, INFO, WARNING, ERROR, CRITICAL.",
+    )
