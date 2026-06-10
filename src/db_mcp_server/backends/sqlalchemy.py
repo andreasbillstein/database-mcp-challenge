@@ -1,3 +1,4 @@
+import inspect
 import pathlib
 from collections.abc import Iterator
 from functools import wraps
@@ -18,13 +19,28 @@ from db_mcp_server.db import (
 )
 
 
+def _to_backend_error(e: SQLAlchemyError) -> BackendError:
+    return BackendError(f"{type(e).__name__}: {e!s}")
+
+
 def _translate_errors(func):
+    if inspect.isgeneratorfunction(func):
+
+        @wraps(func)
+        def gen_wrapper(*args, **kwargs):
+            try:
+                yield from func(*args, **kwargs)
+            except SQLAlchemyError as e:
+                raise _to_backend_error(e) from e
+
+        return gen_wrapper
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         except SQLAlchemyError as e:
-            raise BackendError(f"{type(e).__name__}: {e!s}") from e
+            raise _to_backend_error(e) from e
 
     return wrapper
 
@@ -88,8 +104,12 @@ class SQLAlchemyBackend(AbstractDatabaseBackend):
     @_translate_errors
     def execute_query(self, query: str) -> Iterator[dict[str, Any]]:
         with self._engine.begin() as conn:
-            for row in conn.execute(sa.text(query)).mappings():
-                yield (dict(row))
+            result = conn.execute(
+                sa.text(query),
+                execution_options={"stream_results": True, "yield_per": 1000},
+            )
+            for row in result.mappings():
+                yield dict(row)
 
     def close(self) -> None:
         self._engine.dispose()
