@@ -61,3 +61,7 @@ Start the MCP
 ```
 docker compose up mcp
 ```
+
+## Submission Notes
+
+The biggest gap in the current implementation is, I think, **missing authorization**. I planned to implement it in a basic form and wire up a dummy IdP for testing but didn't get there considering a ~8h timeframe. The DB user is read-only, so writes are rejected at the engine level. For production I'd add identity via e.g. an Identity Aware Proxy or similar for access control plus FastMCP-native scopes for per-tool authorization. Both take real time to do properly and I prioritized code architecture and extensibility instead.
