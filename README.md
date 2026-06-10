@@ -17,7 +17,7 @@ In production, inject the vars via the respective runtime platform.
 
 ```
 uv sync
-uv run uvicorn db_mcp_server.asgi:create_app --factory --reload --reload-dir src --port 8000
+uv run --env-file .env uvicorn db_mcp_server.asgi:create_app --factory --reload --reload-dir src --port 8000
 ```
 
 ## Connecting
