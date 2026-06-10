@@ -2,9 +2,9 @@ services:
   postgres:
     image: postgres:16
     environment:
-      POSTGRES_USER: titanic
-      POSTGRES_PASSWORD: titanic
-      POSTGRES_DB: titanic
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: default
     ports:
       - "5432:5432"
     volumes:
@@ -18,10 +18,10 @@ services:
       DB_MCP__BACKEND__KIND: postgres
       DB_MCP__BACKEND__HOST: postgres
       DB_MCP__BACKEND__PORT: "5432"
-      DB_MCP__BACKEND__DB: titanic
+      DB_MCP__BACKEND__DB: default
       DB_MCP__BACKEND__DB_SCHEMA: public
-      DB_MCP__BACKEND__USERNAME: titanic
-      DB_MCP__BACKEND__PASSWORD: titanic
+      DB_MCP__BACKEND__USERNAME: postgres
+      DB_MCP__BACKEND__PASSWORD: postgres
       DB_MCP__NAME: titanic
       DB_MCP__DESCRIPTION: Real demographics and traveling information for a subset of the passengers and crew who were aboard the RMS Titanic when it sank.
     ports:

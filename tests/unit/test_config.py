@@ -33,8 +33,3 @@ def test_backend_discriminator_resolves_postgres():
 def test_backend_discriminator_rejects_unknown_kind():
     with pytest.raises(ValidationError):
         _adapter.validate_python({"kind": "mysql", "file": "/tmp/test.db"})
-
-
-def test_backend_discriminator_rejects_missing_sqlite_field():
-    with pytest.raises(ValidationError):
-        _adapter.validate_python({"kind": "sqlite"})

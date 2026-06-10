@@ -4,15 +4,14 @@ MCP server exposing read-only SQL access to a database. Three tools — `list_ta
 
 ## Setup
 
-`.env` and the data file are not in the repo. Two one-off steps:
+By default the server uses the SQLite backend pointed at `data/titanic.db`. Drop the Titanic SQLite file there and no further config is required to start the server.
+
+To change the defaults, e.g. switch to Postgres, point at a different SQLite file or rename the server, set the corresponding `DB_MCP__*` environment variables. For local development, copying `.env.example` to `.env` is the easiest way. 
 
 ```
 cp .env.example .env
 ```
-
-Drop the Titanic SQLite file at `data/titanic.db`.
-
-For the Postgres path, uncomment the Postgres block in `.env` and either bring up Postgres via Docker (see below) or point at any existing instance.
+In production, inject the vars via the respective runtime platform.
 
 ## Dev
 
@@ -23,17 +22,25 @@ uv run uvicorn db_mcp_server.asgi:app --reload --reload-dir src --port 8000
 
 ## Connecting
 
-The server runs at `http://localhost:8000/<name>/mcp`, where `<name>` is `DB_MCP__NAME` from `.env` (default `titanic`). 
+The server runs at `http://localhost:8000/<name>/mcp`, where `<name>` is `DB_MCP__NAME` (default `titanic`). 
 
 Easiest way to test is via the MCP Inspector: `npx @modelcontextprotocol/inspector`
 
 ## Tests
 
+Unit tests use SQLite + a dummy MCP backend. Fast and self-contained:
+
 ```
 uv run pytest
 ```
 
-Unit tests use SQLite + a dummy MCP backend. 
+### Integration tests
+
+Integration tests run end-to-end against a real Postgres (in an isolated schema) and are excluded by default. Bring one up via Docker first (see below), then:
+
+```
+uv run pytest -m integration
+```
 
 ## Docker
 
@@ -47,7 +54,7 @@ Load the Titanic data with pgloader:
 brew install pgloader
 pgloader \
   sqlite://$(pwd)/data/titanic.db \
-  postgresql://titanic:titanic@localhost:5432/titanic
+  postgresql://postgres:postgres@localhost:5432/titanic
 ```
 
 Start the MCP

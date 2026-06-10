@@ -21,3 +21,4 @@ jobs:
 
       - name: Run pytest
         run: uv run pytest
+        # Integration tests are skipped (No pg setup in the CI yet. Consider using TestContainers)

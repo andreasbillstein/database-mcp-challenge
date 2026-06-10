@@ -45,5 +45,9 @@ files = ["src", "tests"]
 mypy_path = ["src"]
 explicit_package_bases = true
 
-[tool.pytest]
-pythonpath=["src"]
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+addopts = "-m 'not integration'"
+markers = [
+    "integration: Requires a running Postgres.",
+]
