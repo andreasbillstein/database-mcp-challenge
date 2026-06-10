@@ -1,4 +1,6 @@
+import functools
 import itertools
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -9,6 +11,17 @@ from mcp import ServerSession
 from mcp.server.fastmcp import Context, FastMCP
 
 from db_mcp_server.db import AbstractDatabaseBackend, TableMetadata
+
+log = logging.getLogger(__name__)
+
+
+def _log_tool_call(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        log.info("tool call: %s args=%s", func.__name__, kwargs)
+        return func(*args, **kwargs)
+
+    return wrapper
 
 
 class QueryResult(pydantic.BaseModel):
@@ -48,6 +61,7 @@ def build(
     )
 
     @mcp.tool()
+    @_log_tool_call
     def list_tables(ctx: Context[ServerSession, MCPContext]) -> list[str]:
         """List all table names in the connected database.
 
@@ -59,6 +73,7 @@ def build(
         return backend.list_tables()
 
     @mcp.tool()
+    @_log_tool_call
     def get_table_metadata(
         ctx: Context[ServerSession, MCPContext], tables: list[str] | None = None
     ) -> list[TableMetadata]:
@@ -73,6 +88,7 @@ def build(
         return backend.get_table_metadata(tables)
 
     @mcp.tool()
+    @_log_tool_call
     def execute_query(
         ctx: Context[ServerSession, MCPContext], query: str, limit: int | None = 100
     ) -> QueryResult:

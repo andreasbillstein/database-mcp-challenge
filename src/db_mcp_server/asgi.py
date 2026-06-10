@@ -1,3 +1,4 @@
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -11,6 +12,7 @@ from db_mcp_server.config import Config
 
 def create_app() -> Starlette:
     config = Config()  # type: ignore
+    logging.basicConfig(level=config.log_level)
     backend = bootstrap_db_backend(config)
     mcp = server.build(
         backend,
