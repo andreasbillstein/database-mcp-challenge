@@ -88,8 +88,8 @@ class SQLAlchemyBackend(AbstractDatabaseBackend):
     @_translate_errors
     def execute_query(self, query: str) -> Iterator[dict[str, Any]]:
         with self._engine.begin() as conn:
-            rows = conn.execute(sa.text(query)).mappings()
-        return (dict(row) for row in rows)
+            for row in conn.execute(sa.text(query)).mappings():
+                yield (dict(row))
 
     def close(self) -> None:
         self._engine.dispose()
