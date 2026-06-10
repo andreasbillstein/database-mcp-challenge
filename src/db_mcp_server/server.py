@@ -52,7 +52,7 @@ def build(
         """List all table names in the connected database.
 
         Use this as the first step when exploring an unfamiliar database. The
-        returned names can be passed to `get_table_schema` to learn the structure
+        returned names can be passed to `get_table_metadata` to learn the structure
         of specific tables before writing queries.
         """
         backend = ctx.request_context.lifespan_context.backend
